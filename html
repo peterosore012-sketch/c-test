@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>onSET Deutsch C-Test Simulation - Tag 30 (B2/C1)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gap-input {
+            border-bottom: 2px solid #3b82f6;
+            background-color: #f1f5f9;
+            transition: all 0.15s ease-in-out;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 700;
+            text-align: center;
+        }
+        .gap-input:focus {
+            outline: none;
+            border-bottom-color: #1d4ed8;
+            background-color: #e0e7ff;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+        }
+        .correct-input {
+            border-bottom-color: #16a34a !important;
+            background-color: #dcfce7 !important;
+            color: #15803d !important;
+        }
+        .incorrect-input {
+            border-bottom-color: #dc2626 !important;
+            background-color: #fee2e2 !important;
+            color: #b91c1c !important;
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col justify-between text-slate-800 antialiased selection:bg-blue-200">
+
+    <!-- Header mit Timer & Fortschritt -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm shrink-0">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-xl font-bold text-slate-900 leading-tight">onSET C-Test Trainer</h1>
+                    <p id="text-progress-indicator" class="text-xs font-semibold text-blue-600">Text 1 von 4 &bull; B2/C1 Niveau</p>
+                </div>
+            </div>
+
+            <!-- Timer Box -->
+            <div id="timer-box" class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-xl transition-colors">
+                <i class="fa-regular fa-clock text-slate-500 text-base"></i>
+                <span id="timer-display" class="font-mono text-lg font-bold text-slate-800">04:00</span>
+            </div>
+
+            <!-- Action Button -->
+            <div class="flex items-center gap-2">
+                <button id="next-text-btn" onclick="confirmNextTextOrSubmit()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold px-4 py-2 rounded-xl text-sm shadow-sm transition flex items-center gap-2">
+                    <span id="btn-text">Nächster Text</span>
+                    <i id="btn-icon" class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
+        <!-- Rules Banner -->
+        <div id="info-banner" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex items-start gap-3">
+            <i class="fa-solid fa-circle-info text-blue-500 text-lg mt-0.5 shrink-0"></i>
+            <div class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <strong class="text-slate-800 font-semibold">Tägliche onSET Simulation (Tag 30):</strong> 4 akademische Texte mit genau 20 Lücken pro Text. Sie haben <strong class="text-slate-800">4 Minuten (240 Sekunden) pro Text</strong>. Das System speichert und wechselt nach Ablauf der Zeit automatisch!
+            </div>
+        </div>
+
+        <!-- Post-Test Dashboard -->
+        <div id="results-dashboard" class="hidden bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-slate-200 mb-8 transition-all">
+            <div class="text-center pb-6 border-b border-slate-100">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 mb-3 text-xl">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1">Tages-Auswertung</h2>
+                <p class="text-xs sm:text-sm text-slate-500">Ergebnisse Ihrer B2/C1 onSET Simulation (80 Lücken)</p>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 my-6">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <span class="block text-xs uppercase font-bold text-slate-400 mb-1">Punkte</span>
+                    <span id="res-score" class="text-2xl sm:text-3xl font-black text-blue-600">0 / 80</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <span class="block text-xs uppercase font-bold text-slate-400 mb-1">Quote</span>
+                    <span id="res-percentage" class="text-2xl sm:text-3xl font-black text-indigo-600">0%</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <span class="block text-xs uppercase font-bold text-slate-400 mb-1">Gesamtzeit</span>
+                    <span id="res-time" class="text-2xl sm:text-3xl font-black text-emerald-600">00:00</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <span class="block text-xs uppercase font-bold text-slate-400 mb-1">Einstufung</span>
+                    <span id="res-level" class="text-2xl sm:text-3xl font-black text-amber-500">-</span>
+                </div>
+            </div>
+
+            <div id="res-feedback" class="bg-blue-50/80 border-l-4 border-blue-600 p-4 rounded-r-2xl text-sm text-slate-800 mb-6 leading-relaxed">
+            </div>
+
+            <div class="flex justify-center">
+                <button onclick="resetTest()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-8 py-3 rounded-xl shadow transition flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fa-solid fa-rotate-right"></i> Simulation erneut starten
+                </button>
+            </div>
+        </div>
+
+        <!-- Active Passage Viewport -->
+        <div id="text-card-container">
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        onSET Deutsch B2/C1 C-Test Trainer &bull; Täglicher Übungstest (Tag 30)
+    </footer>
+
+    <script>
+        const textsData = [
+            {
+                title: "Text 1: Soziolinguistik und Fachsprachenforschung",
+                passage: [
+                    { t: "Die Fachsprachenforschung un" }, { g: "tersucht", c: "tersucht" },
+                    { t: " die spe" }, { g: "zifische", c: "zifische" },
+                    { t: " Kommunikation i" }, { g: "n", c: "n" },
+                    { t: " wissenschaftlichen un" }, { g: "d", c: "d" },
+                    { t: " beruflichen D" }, { g: "omänen", c: "omänen" },
+                    { t: ". Im Ge" }, { g: "gensatz", c: "gensatz" },
+                    { t: " zur Al" }, { g: "lgemeinsprache", c: "lgemeinsprache" },
+                    { t: " zeichnen s" }, { g: "ich", c: "ich" },
+                    { t: " Fachsprachen du" }, { g: "rch", c: "rch" },
+                    { t: " eine ho" }, { g: "he", c: "he" },
+                    { t: " Präzision, Ex" }, { g: "aktheit", c: "aktheit" },
+                    { t: " und Sy" }, { g: "stematik", c: "stematik" },
+                    { t: " aus. Be" }, { g: "sonders", c: "sonders" },
+                    { t: " die ver" }, { g: "wendete", c: "wendete" },
+                    { t: " Terminologie d" }, { g: "ient", c: "ient" },
+                    { t: " der ein" }, { g: "deutigen", c: "deutigen" },
+                    { t: " Verständigung un" }, { g: "ter", c: "ter" },
+                    { t: " Experten un" }, { g: "d", c: "d" },
+                    { t: " vermeidet Mi" }, { g: "ssverständnisse", c: "ssverständnisse" },
+                    { t: "." }
+                ]
+            },
+            {
+                title: "Text 2: Neurobiologie und Gedächtniskonsolidierung",
+                passage: [
+                    { t: "Gedächtnisinhalte w" }, { g: "erden", c: "erden" },
+                    { t: " nicht so" }, { g: "fort", c: "fort" },
+                    { t: " dauerhaft im Ge" }, { g: "hirn", c: "hirn" },
+                    { t: " gespeichert, son" }, { g: "dern", c: "dern" },
+                    { t: " durchlaufen ei" }, { g: "nen", c: "nen" },
+                    { t: " mehrstufigen Pro" }, { g: "zess", c: "zess" },
+                    { t: " der Kon" }, { g: "solidierung", c: "solidierung" },
+                    { t: ". Eine sch" }, { g: "lüsselrolle", c: "lüsselrolle" },
+                    { t: " kommt da" }, { g: "bei", c: "bei" },
+                    { t: " dem Sch" }, { g: "laf", c: "laf" },
+                    { t: " zu, be" }, { g: "sonders", c: "sonders" },
+                    { t: " den Tiefschlafphasen. In di" }, { g: "esen", c: "esen" },
+                    { t: " Zeiten w" }, { g: "erden", c: "erden" },
+                    { t: " am Ta" }, { g: "g", c: "g" },
+                    { t: " aufgenommene Infor" }, { g: "mationen", c: "mationen" },
+                    { t: " reaktiviert un" }, { g: "d", c: "d" },
+                    { t: " im Ne" }, { g: "okortex", c: "okortex" },
+                    { t: " verankert." }
+                ]
+            },
+            {
+                title: "Text 3: Internationale Ökonomie und Handelshemmnisse",
+                passage: [
+                    { t: "In d" }, { g: "er", c: "er" },
+                    { t: " globalisierten Wirt" }, { g: "schaft", c: "schaft" },
+                    { t: " versuchen St" }, { g: "aaten", c: "aaten" },
+                    { t: " häufig, ih" }, { g: "re", c: "re" },
+                    { t: " heimischen Mär" }, { g: "kte", c: "kte" },
+                    { t: " durch pro" }, { g: "tektionistische", c: "tektionistische" },
+                    { t: " Maßnahmen z" }, { g: "u", c: "u" },
+                    { t: " schützen. Ne" }, { g: "ben", c: "ben" },
+                    { t: " klassischen Zö" }, { g: "llen", c: "llen" },
+                    { t: " gewinnen ni" }, { g: "chttarifäre", c: "chttarifäre" },
+                    { t: " Handelshemmnisse im" }, { g: "mer", c: "mer" },
+                    { t: " mehr an Be" }, { g: "deutung", c: "deutung" },
+                    { t: ". Dazu geh" }, { g: "ören", c: "ören" },
+                    { t: " strikte Qualitätsstandards, Importquoten od" }, { g: "er", c: "er" },
+                    { t: " langwierige Zer" }, { g: "tifizierungsverfahren", c: "tifizierungsverfahren" },
+                    { t: "." }
+                ]
+            },
+            {
+                title: "Text 4: Pflanzenphysiologie und Fotosynthese",
+                passage: [
+                    { t: "Die Fotosynthese i" }, { g: "st", c: "st" },
+                    { t: " der grund" }, { g: "legende", c: "legende" },
+                    { t: " biochemische Pro" }, { g: "zess", c: "zess" },
+                    { t: ", durch de" }, { g: "n", c: "n" },
+                    { t: " Pflanzen Lichtenergie i" }, { g: "n", c: "n" },
+                    { t: " chemische Ene" }, { g: "rgie", c: "rgie" },
+                    { t: " umwandeln. In de" }, { g: "n", c: "n" },
+                    { t: " Chloroplasten w" }, { g: "ird", c: "ird" },
+                    { t: " mithilfe vo" }, { g: "n", c: "n" },
+                    { t: " Chlorophyll Sonnenlicht ab" }, { g: "sorbiert", c: "sorbiert" },
+                    { t: ", um a" }, { g: "us", c: "us" },
+                    { t: " Wasser un" }, { g: "d", c: "d" },
+                    { t: " Kohlendioxid Glu" }, { g: "kose", c: "kose" },
+                    { t: " und Sa" }, { g: "uerstoff", c: "uerstoff" },
+                    { t: " zu er" }, { g: "zeugen", c: "zeugen" },
+                    { t: "." }
+                ]
+            }
+        ];
+
+        let currentTextIndex = 0;
+        let timerInterval = null;
+        let totalTimerInterval = null;
+        let timeRemaining = 240; 
+        let userAnswers = {};
+        let totalElapsedSeconds = 0;
+
+        function initTest() {
+            currentTextIndex = 0;
+            userAnswers = {};
+            totalElapsedSeconds = 0;
+
+            clearInterval(totalTimerInterval);
+            totalTimerInterval = setInterval(() => {
+                totalElapsedSeconds++;
+            }, 1000);
+
+            renderTextCard(currentTextIndex);
+        }
+
+        function renderTextCard(idx) {
+            const container = document.getElementById('text-card-container');
+            const textObj = textsData[idx];
+
+            document.getElementById('text-progress-indicator').textContent = `Text ${idx + 1} von 4 \u2022 B2/C1 Niveau`;
+
+            if (idx === textsData.length - 1) {
+                document.getElementById('btn-text').textContent = "Test Abgeben";
+                document.getElementById('btn-icon').className = "fa-solid fa-check text-xs";
+            } else {
+                document.getElementById('btn-text').textContent = "Nächster Text";
+                document.getElementById('btn-icon').className = "fa-solid fa-arrow-right text-xs";
+            }
+
+            let html = `<div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200">`;
+            html += `<div class="flex items-center justify-between gap-2 mb-6 border-b border-slate-100 pb-4">
+                        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-lg uppercase font-black">Text ${idx + 1}</span>
+                            ${escapeHtml(textObj.title)}
+                        </h2>
+                     </div>`;
+            html += `<div class="leading-loose sm:leading-loose text-slate-800 text-base sm:text-lg">`;
+
+            let gapNum = 0;
+            textObj.passage.forEach(part => {
+                if (part.t) html += `<span>${escapeHtml(part.t)}</span>`;
+                if (part.g) {
+                    gapNum++;
+                    const key = `t${idx}_g${gapNum}`;
+                    const savedVal = userAnswers[key] || "";
+                    const targetLen = part.c.length;
+                    const inputWidthRem = Math.max(2.5, targetLen * 0.95);
+
+                    html += `<span class="inline-block mx-0.5">
+                        <input type="text" 
+                               id="gap-${gapNum}" 
+                               data-gap-index="${gapNum}"
+                               data-correct="${escapeHtml(part.c)}" 
+                               data-key="${key}"
+                               data-target-length="${targetLen}"
+                               value="${escapeHtml(savedVal)}"
+                               maxlength="${targetLen + 1}" 
+                               autocomplete="off" 
+                               spellcheck="false" 
+                               style="width: ${inputWidthRem}rem;"
+                               class="gap-input text-blue-900 focus:ring-2 focus:ring-blue-400 rounded-md px-1 py-0.5" 
+                        />
+                    </span>`;
+                }
+            });
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+
+            attachKeyboardListeners();
+            startTextTimer();
+
+            setTimeout(() => {
+                const first = document.getElementById('gap-1');
+                if (first) first.focus();
+            }, 100);
+        }
+
+        function attachKeyboardListeners() {
+            const inputs = document.querySelectorAll('.gap-input');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    const currentGap = parseInt(input.getAttribute('data-gap-index'));
+                    const targetLen = parseInt(input.getAttribute('data-target-length'));
+
+                    if (input.value.length >= targetLen) {
+                        const nextInput = document.getElementById(`gap-${currentGap + 1}`);
+                        if (nextInput) nextInput.focus();
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    const currentGap = parseInt(input.getAttribute('data-gap-index'));
+
+                    if (e.key === 'Backspace' && input.value === '') {
+                        const prevInput = document.getElementById(`gap-${currentGap - 1}`);
+                        if (prevInput) prevInput.focus();
+                    } else if (e.key === 'ArrowRight') {
+                        const nextInput = document.getElementById(`gap-${currentGap + 1}`);
+                        if (nextInput) nextInput.focus();
+                    } else if (e.key === 'ArrowLeft') {
+                        const prevInput = document.getElementById(`gap-${currentGap - 1}`);
+                        if (prevInput) prevInput.focus();
+                    } else if (e.key === 'Enter') {
+                        const nextInput = document.getElementById(`gap-${currentGap + 1}`);
+                        if (nextInput) {
+                            nextInput.focus();
+                        } else {
+                            confirmNextTextOrSubmit();
+                        }
+                    }
+                });
+            });
+        }
+
+        function saveCurrentAnswers() {
+            const inputs = document.querySelectorAll('.gap-input');
+            inputs.forEach(input => {
+                const key = input.getAttribute('data-key');
+                userAnswers[key] = input.value.trim();
+            });
+        }
+
+        function startTextTimer() {
+            clearInterval(timerInterval);
+            timeRemaining = 240; 
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    saveCurrentAnswers();
+
+                    if (currentTextIndex < textsData.length - 1) {
+                        currentTextIndex++;
+                        renderTextCard(currentTextIndex);
+                    } else {
+                        finalizeTest();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const timerEl = document.getElementById('timer-display');
+            const timerBox = document.getElementById('timer-box');
+
+            timerEl.textContent = display;
+
+            if (timeRemaining <= 60) {
+                timerBox.className = "flex items-center gap-2 bg-red-50 border border-red-200 px-3.5 py-1.5 rounded-xl text-red-600 animate-pulse";
+                timerEl.className = "font-mono text-lg font-bold text-red-600";
+            } else {
+                timerBox.className = "flex items-center gap-2 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-xl";
+                timerEl.className = "font-mono text-lg font-bold text-slate-800";
+            }
+        }
+
+        function confirmNextTextOrSubmit() {
+            saveCurrentAnswers();
+            if (currentTextIndex < textsData.length - 1) {
+                currentTextIndex++;
+                renderTextCard(currentTextIndex);
+            } else {
+                finalizeTest();
+            }
+        }
+
+        function finalizeTest() {
+            clearInterval(timerInterval);
+            clearInterval(totalTimerInterval);
+
+            const container = document.getElementById('text-card-container');
+            container.innerHTML = '';
+
+            let totalCorrect = 0;
+            const totalGaps = 80;
+
+            textsData.forEach((textObj, tIdx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200 mb-6';
+
+                let html = `<div class="flex items-center justify-between gap-2 mb-4 border-b border-slate-100 pb-3">
+                                <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-lg uppercase font-black">Text ${tIdx + 1}</span>
+                                    ${escapeHtml(textObj.title)}
+                                </h3>
+                            </div>`;
+                html += `<div class="leading-loose sm:leading-loose text-slate-800 text-base sm:text-lg">`;
+
+                let gIdx = 0;
+                textObj.passage.forEach(part => {
+                    if (part.t) html += `<span>${escapeHtml(part.t)}</span>`;
+                    if (part.g) {
+                        gIdx++;
+                        const key = `t${tIdx}_g${gIdx}`;
+                        const userVal = (userAnswers[key] || "").toLowerCase();
+                        const correctVal = part.c.toLowerCase();
+                        const isCorrect = (userVal === correctVal);
+
+                        if (isCorrect) totalCorrect++;
+
+                        const cssClass = isCorrect ? 'correct-input' : 'incorrect-input';
+                        const targetLen = part.c.length;
+                        const inputWidthRem = Math.max(2.5, targetLen * 0.95);
+                        const solutionHtml = !isCorrect ? `<span class="text-xs font-bold text-red-600 font-mono ml-1 bg-red-50 px-1.5 py-0.5 rounded border border-red-200">[${escapeHtml(part.c)}]</span>` : '';
+
+                        html += `<span class="inline-block mx-0.5">
+                            <input type="text" 
+                                   value="${escapeHtml(userAnswers[key] || "")}" 
+                                   disabled 
+                                   style="width: ${inputWidthRem}rem;"
+                                   class="gap-input ${cssClass} font-bold rounded-md px-1 py-0.5" 
+                            />
+                            ${solutionHtml}
+                        </span>`;
+                    }
+                });
+
+                html += `</div>`;
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+
+            const percentage = Math.round((totalCorrect / totalGaps) * 100);
+            const totalMin = Math.floor(totalElapsedSeconds / 60);
+            const totalSec = totalElapsedSeconds % 60;
+            const timeFormatted = `${totalMin.toString().padStart(2, '0')}:${totalSec.toString().padStart(2, '0')}`;
+
+            let predictedLevel = "< B1";
+            let feedbackText = "";
+
+            if (percentage >= 80) {
+                predictedLevel = "C1";
+                feedbackText = "<strong>Hervorragend!</strong> Über 80% richtig. Das entspricht C1-Niveau. Sie beherrschen anspruchsvolle akademische Register hervorragend!";
+            } else if (percentage >= 60) {
+                predictedLevel = "B2";
+                feedbackText = "<strong>Gute B2-Leistung!</strong> Achten Sie weiterhin auf feine Nuancen bei Präpositionalverbindungen und Konnektoren.";
+            } else if (percentage >= 40) {
+                predictedLevel = "B1";
+                feedbackText = "<strong>B1 Niveau erreicht.</strong> Wiederholen Sie systematisch Wortbildungsmuster zur Steigerung Ihres Tempos.";
+            } else {
+                predictedLevel = "< B1";
+                feedbackText = "<strong>Unter B1.</strong> Arbeiten Sie an der schnellen Erkennung von Grundstämmen im Satzkontext.";
+            }
+
+            document.getElementById('res-score').textContent = `${totalCorrect} / ${totalGaps}`;
+            document.getElementById('res-percentage').textContent = `${percentage}%`;
+            document.getElementById('res-time').textContent = timeFormatted;
+            document.getElementById('res-level').textContent = predictedLevel;
+            document.getElementById('res-feedback').innerHTML = feedbackText;
+
+            document.getElementById('results-dashboard').classList.remove('hidden');
+            document.getElementById('next-text-btn').classList.add('hidden');
+            document.getElementById('timer-box').classList.add('hidden');
+            document.getElementById('info-banner').classList.add('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetTest() {
+            document.getElementById('results-dashboard').classList.add('hidden');
+            document.getElementById('next-text-btn').classList.remove('hidden');
+            document.getElementById('timer-box').classList.remove('hidden');
+            document.getElementById('info-banner').classList.add('hidden');
+            initTest();
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        window.onload = initTest;
+    </script>
+</body>
+</html>
